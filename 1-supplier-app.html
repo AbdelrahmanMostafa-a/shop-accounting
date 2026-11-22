@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>حسابات المحل</title>
+<title>ProDive</title>
 <style>
 :root{--bg:#eef4f7;--card:#fff;--ink:#17262f;--muted:#667885;--line:#d9e4ea;--pri:#0b6e8a;--pri-d:#08546a;--pri-l:#e2f1f6;--pri-b:#b9dbe6;--pri-ll:#d3eef6;--hdr-a:#08546a;--hdr-b:#0b8aa8;--ok:#14784a;--ok-l:#e4f5ec;--bad:#c0392b;--bad-l:#fdeceb;--warn:#a96a0a;--warn-l:#fdf3df;--r:14px;--sh1:0 1px 2px rgba(11,60,80,.06),0 4px 14px rgba(11,60,80,.06);--sh2:0 2px 4px rgba(11,60,80,.08),0 12px 30px rgba(11,60,80,.14);--ease:cubic-bezier(.22,.8,.25,1)}
 *{box-sizing:border-box}
@@ -2510,7 +2510,7 @@ function renderSaveChip(){
 function renderChrome(){
   const s=state.settings;
   $('#shopName').textContent=s.shopName;
-  document.title=s.shopName+' — حسابات'+(isTrialMode()?' (نسخة تجريبية)':'');
+  document.title='ProDive';
   $('#brandLogo').innerHTML=s.logo?'<img src="'+esc(s.logo)+'" alt="">':'🏪';
   const adm=ROLE==='admin';
   $('#btnLock').hidden=!s.pin;$('#btnLock').textContent=adm?'🔒 قفل':'🔒 خروج';
