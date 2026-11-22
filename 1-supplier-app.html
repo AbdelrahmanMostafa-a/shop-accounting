@@ -438,6 +438,38 @@ details>summary{transition:color .2s}
 html[data-motion=off] *,html[data-motion=off] *::before,html[data-motion=off] *::after{animation:none!important;transition:none!important}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
+<style id="subitems-motion-style">
+/* Sub-items and responsive interaction motion */
+@keyframes livelyIn{0%{opacity:0;transform:perspective(900px) rotateX(-10deg) translateY(24px) scale(.96)}65%{opacity:1;transform:perspective(900px) rotateX(2deg) translateY(-5px) scale(1.01)}100%{opacity:1;transform:none}}
+@keyframes tickFlip{0%{transform:perspective(150px) rotateY(0deg) scale(.8)}65%{transform:perspective(150px) rotateY(380deg) scale(1.3)}100%{transform:perspective(150px) rotateY(360deg) scale(1)}}
+@keyframes rowSpring{0%{opacity:0;transform:translateX(25px) scale(.92)}70%{opacity:1;transform:translateX(-4px) scale(1.015)}100%{opacity:1;transform:none}}
+.ck-tick-flip{animation:tickFlip .58s cubic-bezier(.18,.8,.25,1)!important}.ck-row-pop{animation:rowSpring .45s cubic-bezier(.18,.8,.25,1)!important}
+.motion-tab-enter>.card,.motion-tab-enter .cards>.stat{animation:livelyIn .55s cubic-bezier(.18,.8,.25,1) both!important;transform-origin:center top}.motion-tab-enter>.card:nth-child(2),.motion-tab-enter .cards>.stat:nth-child(2){animation-delay:.055s!important}.motion-tab-enter>.card:nth-child(3),.motion-tab-enter .cards>.stat:nth-child(3){animation-delay:.11s!important}.motion-tab-enter>.card:nth-child(4),.motion-tab-enter .cards>.stat:nth-child(4){animation-delay:.165s!important}
+#modal.open .modal-box{animation:livelyIn .48s cubic-bezier(.18,.8,.25,1)!important}
+@media(hover:hover){html:not([data-motion=off]) .btn:not(:disabled):hover,html:not([data-motion=off]) .icon:not(:disabled):hover{transform:translateY(-4px) rotate(-1.8deg) scale(1.025)!important}html:not([data-motion=off]) .stat:hover{transform:translateY(-6px) rotate(.8deg) scale(1.015)!important}#tabs button:hover{transform:translateY(-3px) rotate(-1deg)!important}}
+.ck-sub-editor input,.ck-sub-note input{border:1px solid var(--line);border-radius:9px;padding:8px 10px;color:var(--ink);font:inherit;font-size:14px;outline:0}
+.stat.big:not(.loss){background:var(--card)!important;color:var(--ink)!important;border-color:var(--line)!important;transition:background-color .25s,transform .35s cubic-bezier(.2,1.5,.4,1),box-shadow .25s!important}.stat.big:not(.loss) .lbl,.stat.big:not(.loss) .sub{color:var(--muted)!important}
+@media(hover:hover){.stat.big:not(.loss):hover{background:var(--pri)!important;color:#fff!important}.stat.big:not(.loss):hover .lbl,.stat.big:not(.loss):hover .sub{color:#ffffffcc!important}}
+.formula,.banner.tip,.banner.trial{background:var(--card)!important;transition:background-color .25s!important}@media(hover:hover){.formula:hover,.banner.tip:hover,.banner.trial:hover{background:var(--pri-l)!important}}
+
+.ck-sub-edit-box{flex:1 0 100%;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;background:var(--bg,#fafbfd)}
+.ck-sub-edit-head{display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:700}.ck-sub-edit-head small{font-weight:400}
+.ck-sub-editor{display:grid;grid-template-columns:minmax(130px,1fr) minmax(130px,1fr) 32px;gap:8px;margin-top:9px;align-items:center}.ck-ed .ck-sub-editor input{min-width:0;width:100%}
+.ck-parent-group{border-top:1px dashed var(--line);padding:8px 0}.ck-parent-group>.ck-item{border-top:0}.ck-sub-count{font-size:11px;padding:3px 8px;background:var(--soft,#f1f5f9);border-radius:20px;color:var(--muted)}
+.ck-sub-list{margin-inline-start:19px;border-inline-start:2px solid var(--line);padding-inline-start:15px}.ck-sub-item{display:grid;grid-template-columns:minmax(150px,1fr) minmax(190px,1fr);gap:12px;align-items:center;padding:10px 9px;border-radius:10px;transition:background-color .22s,border-color .22s;break-inside:avoid}
+.ck-sub-item+.ck-sub-item{border-top:1px solid var(--line)}.ck-sub-label{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.ck-sub-label .ck-meta{width:100%;padding-inline-start:33px}.ck-sub-item.done .ck-sub-title{text-decoration:line-through;color:var(--muted)}
+.ck-sub-note{display:flex;gap:6px;align-items:center;margin:0}.ck-sub-note input{flex:1;min-width:0;width:100%}.ck-sub-note-read{font-size:12px;overflow-wrap:anywhere}.ck-sub-note-read small{display:block}.ck-sub-note .btn{flex-shrink:0}.ck-sub-title{overflow-wrap:anywhere;max-width:100%}.ck-sub-item .ck-box{flex-shrink:0}.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+input:not([type=checkbox]):not([type=radio]),select,textarea{background-color:var(--card,#fff)!important;transition:background-color .22s,border-color .22s,box-shadow .22s!important}
+input:not([type=checkbox]):not([type=radio]):focus,select:focus,textarea:focus{background-color:color-mix(in srgb,var(--pri,#2475d5) 5%,var(--card,#fff))!important;border-color:var(--pri,#2475d5)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--pri,#2475d5) 13%,transparent)!important}
+.btn,.icon,.tab-btn,.ck-box{transition:transform .2s,background-color .2s,border-color .2s,box-shadow .2s,color .2s!important}.btn.sec{background:var(--card,#fff)!important}.ck-box{transform-origin:center}.ck-box.on{box-shadow:0 2px 8px #05966922}.ck-card{transition:border-color .22s,box-shadow .22s!important}.ck-item.mine,.ck-card.s-soon{background:transparent!important}.ck-sub-item.done{background:color-mix(in srgb,#10b981 4%,transparent)}
+#tabs button{position:relative;transition:background-color .2s,color .2s,box-shadow .2s!important}#tabs button.active{background:var(--card,#fff)!important;color:var(--pri,#2475d5)!important;box-shadow:inset 0 -3px 0 var(--pri,#2475d5)!important}
+.btn:active,.icon:active,.ck-box:active{transform:scale(.96)!important}.btn:focus-visible,.icon:focus-visible,.ck-box:focus-visible,#tabs button:focus-visible{outline:3px solid color-mix(in srgb,var(--pri,#2475d5) 35%,transparent);outline-offset:3px}
+@media(hover:hover){input:not([type=checkbox]):not([type=radio]):hover,select:hover,textarea:hover{border-color:var(--pri,#2475d5)!important;background-color:color-mix(in srgb,var(--pri,#2475d5) 4%,var(--card,#fff))!important}.btn:hover,.icon:hover{transform:translateY(-2px);box-shadow:0 5px 13px #1e4c7820}.btn.sec:hover,#tabs button:hover{background:color-mix(in srgb,var(--pri,#2475d5) 10%,var(--card,#fff))!important}.ck-box:hover{transform:scale(1.1);box-shadow:0 0 0 4px #3b82f619}.ck-card:hover{border-color:color-mix(in srgb,var(--pri,#2475d5) 35%,var(--line));box-shadow:0 8px 24px #1e4c7812!important}.ck-sub-item:hover{background:color-mix(in srgb,var(--pri,#2475d5) 4%,transparent)}}
+@media(max-width:650px){.ck-sub-item{grid-template-columns:1fr;gap:8px;padding:10px 3px}.ck-sub-list{margin-inline-start:10px;padding-inline-start:10px}.ck-sub-editor{grid-template-columns:minmax(0,1fr) 28px}.ck-sub-editor [name=sub_t]{grid-column:1;grid-row:1}.ck-sub-editor [name=sub_note]{grid-column:1;grid-row:2}.ck-sub-editor .icon{grid-column:2;grid-row:1/3}.ck-sub-edit-box{padding:9px}.ck-sub-edit-head{font-size:12px}.ck-sub-edit-head small{display:block}}
+@media print{.ck-sub-note button{display:none}.ck-sub-note input{border:0!important;box-shadow:none!important}.ck-sub-item{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.btn:hover,.icon:hover,.ck-box:hover,.btn:active,.icon:active,.ck-box:active{transform:none!important}}
+html[data-motion=off] *,html[data-motion=off] *::before,html[data-motion=off] *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+</style>
 </head>
 <body>
 <header class="no-print">
@@ -1891,6 +1923,8 @@ function cleanCkItems(a,inst){
   return asList(a).filter(x=>cstr(x.t,120)).slice(0,60).map(x=>{
     const o={id:uniqId(x.id,seen),t:cstr(x.t,120),w:cleanUid(x.w)||'admin'};
     if(inst&&x.d&&typeof x.d==='object'&&+x.d.t>0)o.d={u:cleanUid(x.d.u)||'admin',t:+x.d.t};
+    const cs={};const kids=asList(x.subs).filter(c=>cstr(c.t,120)).slice(0,30).map(c=>{const z={id:uniqId(c.id,cs),t:cstr(c.t,120),note:cstr(c.note,400)};if(inst&&c.d&&+c.d.t>0)z.d={u:cleanUid(c.d.u)||'admin',t:+c.d.t};return z;});
+    if(kids.length){o.subs=kids;if(inst)ckRollup(o);}
     return o;
   });
 }
@@ -1991,7 +2025,7 @@ function ckState(l,now){
 }
 const CK_ST={done:['مكتملة','grn'],soon:['يقترب موعدها','yel'],late:['متأخرة','red'],missed:['فاتت دون اكتمال','gry'],next:['قادمة','blu']};
 function listFromTpl(t,date,time,gen){
-  const o={id:uid(),name:t.name,tpl:t.id,date:date,time:time||'23:59',warn:t.warn,items:t.items.map(i=>({id:uid(),t:i.t,w:i.w}))};
+  const o={id:uid(),name:t.name,tpl:t.id,date:date,time:time||'23:59',warn:t.warn,items:t.items.map(i=>{const n={id:uid(),t:i.t,w:i.w};if(i.subs&&i.subs.length)n.subs=i.subs.map(c=>({id:uid(),t:c.t,note:c.note||''}));return n;})};
   if(gen)o.gen=true;
   return o;
 }
@@ -4090,11 +4124,11 @@ function checksSheet(){
   const now=nowTs(),rows=[];
   state.ckLists.slice().sort((a,b)=>a.date<b.date?-1:(a.date>b.date?1:dueTs(a)-dueTs(b))).forEach(l=>{
     const s=ckState(l,now);
-    l.items.forEach(it=>rows.push([l.name,fmtDate(l.date),l.time,CK_ST[s.st][0],it.t,uLabel(it.w),it.d?'تم':'لم يتم',it.d?uLabel(it.d.u):'',it.d?stampTxt(it.d.t):'']));
+    l.items.forEach(it=>{rows.push([l.name,fmtDate(l.date),l.time,CK_ST[s.st][0],it.t,uLabel(it.w),it.d?'تم':'لم يتم',it.d?uLabel(it.d.u):'',it.d?stampTxt(it.d.t):'','']);(it.subs||[]).forEach(c=>rows.push([l.name,fmtDate(l.date),l.time,CK_ST[s.st][0],it.t+' / '+c.t,uLabel(it.w),c.d?'تم':'لم يتم',c.d?uLabel(c.d.u):'',c.d?stampTxt(c.d.t):'',c.note||'']));});
   });
   if(!rows.length)return null;
-  return tableSheet({name:'قوائم المراجعة',title:'سجل قوائم المراجعة التشغيلية',headers:['القائمة','التاريخ','الموعد','حالة القائمة','البند','المسؤول','الإنجاز','أنجزه','وقت الإنجاز'],
-    widths:[26,16,10,18,34,18,10,18,20],landscape:true,rows:rows});
+  return tableSheet({name:'قوائم المراجعة',title:'سجل قوائم المراجعة التشغيلية',headers:['القائمة','التاريخ','الموعد','حالة القائمة','البند / البند الفرعي','المسؤول','الإنجاز','أنجزه','وقت الإنجاز','ملاحظات'],
+    widths:[26,16,10,18,34,18,10,18,20,40],landscape:true,rows:rows});
 }
 
 const TRIAL_KEY='dive_trial_v1';
@@ -6884,6 +6918,46 @@ forms.cklist=function(f){
  if(pending.length){save();render();}
 };
 act.gotoSupplierChecklist=b=>{const l=listOf(b.dataset.id);if(!l||!levelOK('checks','r'))return;ui.tab='checks';ui.ckView='lists';ui.ckF='all';ui.ckQ=l.name;render();window.scrollTo(0,0);};
+
+
+/* checklist sub-items v1 */
+function ckRollup(it){
+ const kids=it.subs||[];if(!kids.length)return;
+ if(kids.every(c=>c.d)){const last=kids.slice().sort((a,b)=>(+a.d.t-+b.d.t)||(a.id<b.id?-1:a.id>b.id?1:0)).pop();it.d={u:last.d.u,t:+last.d.t};}else delete it.d;
+}
+Object.assign(ACT_REQ,{addCkSub:['checks','f'],delCkSub:['checks','f'],tickCkSub:['checks','w']});
+FORM_REQ.cksubnote=['checks','w'];
+function ckSubEditor(c){return '<div class="ck-sub-editor"><input type="hidden" name="sub_id" value="'+esc(c?c.id:'')+'"><input name="sub_t" value="'+esc(c?c.t:'')+'" maxlength="120" placeholder="نص البند الفرعي" aria-label="نص البند الفرعي"><input name="sub_note" value="'+esc(c?c.note||'':'')+'" maxlength="400" placeholder="ملاحظات (اختياري)" aria-label="ملاحظات البند الفرعي"><button class="icon del" type="button" data-act="delCkSub" title="حذف البند الفرعي">✕</button></div>';}
+const ckRowBeforeSubs=ckItemRow;
+ckItemRow=function(it,mod){const base=ckRowBeforeSubs(it,mod);return base.slice(0,-6)+'<div class="ck-sub-edit-box"><div class="ck-sub-edit-head"><span>بنود فرعية <small class="muted">اختيارية · نفس المسؤول</small></span><button type="button" class="btn sec sm" data-act="addCkSub">＋ بند فرعي</button></div><div class="ck-sub-editor-rows">'+((it&&it.subs)||[]).map(ckSubEditor).join('')+'</div></div></div>';};
+act.addCkSub=b=>{if(!ckCanManage())return;const box=b.closest('.ck-sub-edit-box').querySelector('.ck-sub-editor-rows');if(box.children.length>=30){toast('الحد الأقصى ٣٠ بندًا فرعيًا لكل بند');return;}box.insertAdjacentHTML('beforeend',ckSubEditor(null));box.lastElementChild.querySelector('[name="sub_t"]').focus();ckPlay(box.lastElementChild,'ck-row-pop');};
+act.delCkSub=b=>{if(ckCanManage())b.closest('.ck-sub-editor').remove();};
+const readBeforeSubs=readCkItems;
+readCkItems=function(f,old){const r=readBeforeSubs(f,old);if(r.err)return r;const rows=[...f.querySelectorAll('.ck-ed')].filter(e=>cstr(e.querySelector('[name="i_t"]').value,120));const prev={};(old||[]).forEach(i=>prev[i.id]=i);
+ for(let n=0;n<r.items.length;n++){
+  const it=r.items[n],was=prev[it.id],kids=[];
+  for(const e of rows[n].querySelectorAll('.ck-sub-editor')){
+   const t=cstr(e.querySelector('[name="sub_t"]').value,120),note=cstr(e.querySelector('[name="sub_note"]').value,400),id=e.querySelector('[name="sub_id"]').value;
+   if(!t){if(note)return {err:'اكتب نص البند الفرعي قبل ملاحظاته'};continue;}
+   const before=was&&(was.subs||[]).find(c=>c.id===id);const c={id:before?id:uid(),t,note};if(before&&before.d)c.d={...before.d};kids.push(c);
+  }
+  if(kids.length){it.subs=kids;ckRollup(it);}
+ }
+ return r;
+};
+const itemHTMLBeforeSubs=ckItemHTML;
+ckItemHTML=function(l,it,done){const kids=it.subs||[];if(!kids.length)return itemHTMLBeforeSubs(l,it,done);const can=ckCanTick(it),count=kids.filter(c=>c.d).length;
+ return '<section class="ck-parent-group" data-ck-parent="'+esc(it.id)+'"><div class="ck-item'+(it.d?' done':'')+'"><span class="ck-box'+(it.d?' on':'')+'" aria-hidden="true">'+(it.d?'✓':'')+'</span><span class="ck-t">'+esc(it.t)+'</span><span class="ck-meta">المسؤول: <b>'+esc(uLabel(it.w))+'</b></span><span class="ck-sub-count">'+count+' / '+kids.length+' بنود فرعية</span><span class="ck-meta">يكتمل تلقائيًا</span></div><div class="ck-sub-list">'+kids.map(c=>{
+  const box=can?'<button type="button" class="ck-box'+(c.d?' on':'')+'" data-act="tickCkSub" data-l="'+l.id+'" data-i="'+it.id+'" data-c="'+c.id+'" aria-label="تعليم البند الفرعي '+esc(c.t)+'" aria-pressed="'+!!c.d+'">'+(c.d?'✓':'')+'</button>':'<span class="ck-box'+(c.d?' on':'')+'" aria-hidden="true">'+(c.d?'✓':'')+'</span>';
+  return '<div class="ck-sub-item'+(c.d?' done':'')+'" data-ck-sub="'+c.id+'"><div class="ck-sub-label">'+box+'<span class="ck-sub-title">'+esc(c.t)+'</span>'+(c.d?'<small class="ck-meta ck-ok">'+esc(uLabel(c.d.u))+' · '+esc(stampTxt(c.d.t))+'</small>':'')+'</div>'+(can?'<form class="ck-sub-note" data-form="cksubnote"><input type="hidden" name="list" value="'+l.id+'"><input type="hidden" name="item" value="'+it.id+'"><input type="hidden" name="child" value="'+c.id+'"><label class="sr-only" for="note-'+c.id+'">ملاحظات '+esc(c.t)+'</label><input id="note-'+c.id+'" name="note" maxlength="400" value="'+esc(c.note||'')+'" placeholder="ملاحظات (اختياري)" aria-label="ملاحظات '+esc(c.t)+'"><button type="submit" class="btn sec sm">حفظ</button></form>':'<div class="ck-sub-note-read"><small class="muted">ملاحظات</small> '+esc(c.note||'لا توجد ملاحظات')+'</div>')+'</div>';
+ }).join('')+'</div></section>'+supplierItemHTML(l,it);
+};
+function ckPlay(el,cls){if(!el||matchMedia('(prefers-reduced-motion: reduce)').matches||document.documentElement.dataset.motion==='off')return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);el.addEventListener('animationend',()=>el.classList.remove(cls),{once:true});}
+document.addEventListener('click',e=>{const b=e.target.closest('#tabs [data-tab]');if(b)setTimeout(()=>ckPlay(document.querySelector('.tab.active'),'motion-tab-enter'),0);});
+const tickBeforeSubs=act.tickItem;
+act.tickItem=b=>{const l=listOf(b.dataset.l),it=l&&l.items.find(i=>i.id===b.dataset.i);if(it&&it.subs&&it.subs.length){toast('علّم البنود الفرعية ليكتمل البند الأساسي تلقائيًا');return;}return tickBeforeSubs(b);};
+act.tickCkSub=b=>{const l=listOf(b.dataset.l),it=l&&l.items.find(i=>i.id===b.dataset.i),c=it&&(it.subs||[]).find(x=>x.id===b.dataset.c);if(!c||!ckCanTick(it))return;if(c.d)delete c.d;else c.d={u:me(),t:Date.now()};ckRollup(it);save();keepScroll(render);ckPlay(document.querySelector('[data-ck-sub="'+CSS.escape(c.id)+'"] .ck-box'),'ck-tick-flip');if(l.items.every(i=>i.d))toast('اكتملت كل بنود القائمة ✔');};
+forms.cksubnote=f=>{const v=new FormData(f),l=listOf(v.get('list')),it=l&&l.items.find(i=>i.id===v.get('item')),c=it&&(it.subs||[]).find(x=>x.id===v.get('child'));if(!c||!ckCanTick(it))return;const note=cstr(v.get('note'),400);if((c.note||'')===note){toast('الملاحظات محفوظة');return;}c.note=note;save();keepScroll(render);toast('جارٍ حفظ الملاحظات');};
 
 bootCloud();
 
