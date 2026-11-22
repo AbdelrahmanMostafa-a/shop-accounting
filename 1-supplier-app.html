@@ -1416,6 +1416,7 @@ function partyEvents(){
       if(t.paid>0)ev.push({pid:d.partyId,date:d.date,ord:4,d:-t.paid,desc:D.payDesc+' رقم '+d.n+' ('+(d.accountId?accName(d.accountId):'نقدًا')+')',src:'docpay',dk:k,ref:d.id,at:+d.at||0});
     });
   });
+  (state.supplierSummary||[]).forEach(o=>{if(pm[o.party_id])ev.push({pid:o.party_id,date:o.service_date,ord:2,d:Number(o.amount),desc:'خدمات مستحقة للمورد',src:'supplierSummary',at:0});});
   (state.supplierOps||[]).forEach(o=>{if(pm[o.partyId])ev.push({pid:o.partyId,date:o.date,ord:2,d:o.amount,desc:'خدمة مورد: '+o.title+' — '+o.sourceName,src:'supplierOp',ref:o.id,at:+o.at||0});});
   return (CALC.pe=ev);
 }
@@ -3489,7 +3490,7 @@ function statementHTML(p){
   let td=0,tc=0;
   const rows=lines.map(l=>{
     const x=dc(l);td+=x[0];tc+=x[1];
-    const mine=l.src==='voucher'&&canF;
+    const mine=l.src==='voucher'&&canF&&(isAdm()||!state.vouchers.some(v=>v.id===l.ref&&v.supplierOp));
     const dk=(l.src==='doc'||l.src==='docpay')&&DOCS[l.dk]&&allModIds().indexOf(DOCS[l.dk].mod)>-1&&levelOK(DOCS[l.dk].mod,'v')?'<button class="icon" data-act="gotoDoc" data-dk="'+l.dk+'" data-id="'+l.ref+'" title="عرض الفاتورة">👁</button>':'';
     return '<tr><td>'+(l.date?dateHTML(l.date):'')+'</td><td>'+esc(l.desc)+'</td><td>'+(x[0]?numSpan(x[0]):'')+'</td><td>'+(x[1]?numSpan(x[1]):'')+'</td><td>'+balHTML(p.kind,l.bal)+'</td>'+
       '<td class="act no-print">'+dk+(mine?'<button class="icon" data-act="editVoucher" data-id="'+l.ref+'" title="تعديل">✎</button> <button class="icon del" data-act="delVoucher" data-id="'+l.ref+'" title="حذف">🗑</button>':'')+'</td></tr>';
@@ -6595,7 +6596,7 @@ async function cloudPull(users){
   if(!rows.length&&CLOUD.profile&&CLOUD.profile.is_admin)st.accounts=defaultState().accounts;
   st.lic=st.settings.cloudLicense||null;
   st.settings.pin={salt:'cloud',hash:'cloud'};st.settings.users=users||[];st.savedAt=Date.now();
-  const flags=await CLOUD.sb.rpc('shop_supplier_flags');if(flags.error)throw flags.error;st.supplierFlags=flags.data||[];
+  const flags=await CLOUD.sb.rpc('shop_supplier_flags');if(flags.error)throw flags.error;st.supplierFlags=flags.data||[];const summary=await CLOUD.sb.rpc('shop_supplier_service_summary');if(summary.error)throw summary.error;st.supplierSummary=summary.data||[];
   const synced=snapOf(st);Object.keys(synced).forEach(c=>synced[c]={});rows.forEach(r=>{if(!synced[r.collection])synced[r.collection]={};synced[r.collection][r.id]=stableJSON(r.data);});return {state:st,synced,empty:rows.length===0};
 }
 function cloudStatus(text,bad){
@@ -6796,6 +6797,7 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-owner-change]')
 
 
 /* Supplier service obligations and explicit allocations to normal payment vouchers. */
+Object.assign(ACT_REQ,{linkSupplierItem:['suppliers','f'],newSupplierOperation:['suppliers','f'],paySupplierOperation:['suppliers','f'],deleteSupplierOperation:['suppliers','f'],gotoSupplierChecklist:['checks','r']});
 function cleanSupplierOps(a){
  const seen={};return asList(a).filter(o=>cstr(o.title,120)&&okDate(o.date)&&parseNum(o.amount)>0).slice(0,50000).map(o=>stampOf({id:uniqId(o.id,seen),partyId:cstr(o.partyId,40),title:cstr(o.title,120),date:o.date,due:okDate(o.due)?o.due:'',amount:round2(nn(o.amount)),listId:cstr(o.listId,40),itemId:cstr(o.itemId,40),sourceName:cstr(o.sourceName,160),sourceKind:o.sourceKind==='checklist'?'checklist':'operation'},o));
 }
@@ -6803,6 +6805,7 @@ const supplierOpOf=id=>(state.supplierOps||[]).find(o=>o.id===id)||null;
 function supplierPaid(id,except){return round2(state.vouchers.filter(v=>v.supplierOp===id&&v.id!==except).reduce((n,v)=>n+parseNum(v.amount),0));}
 function supplierRemaining(o){return Math.max(0,round2(o.amount-supplierPaid(o.id)));}
 function supplierItemHTML(l,it){
+ if(!isAdm())return '';
  const financial=levelOK('suppliers','v')&&!ownOnly('suppliers');
  const ops=financial?(state.supplierOps||[]).filter(o=>o.listId===l.id&&o.itemId===it.id):[];
  const flags=(state.supplierFlags||[]).find(o=>o.list_id===l.id&&o.item_id===it.id);
@@ -6810,6 +6813,7 @@ function supplierItemHTML(l,it){
  return '<div class="ck-money" style="padding:4px 12px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+(linked?pill(unpaid?'yel':'grn',unpaid?'موردون لم يستلموا كامل مستحقاتهم':'مستحقات الموردين مسددة'):'')+(financial?ops.map(o=>'<span class="ck-meta">'+esc((partyOf(o.partyId)||{}).name||'مورد')+' · المتبقي '+numSpan(supplierRemaining(o))+' '+CUR+'</span>').join(''):'')+(levelOK('suppliers','f')&&ckCanManage()?'<button class="btn sec no-print" data-act="linkSupplierItem" data-l="'+l.id+'" data-i="'+it.id+'">＋ ربط مورد / مستحق</button>':'')+'</div>';
 }
 function supplierPaymentPicker(p,ed){
+ if(!isAdm())return '';
  const selected=ed&&ed.supplierOp||ui.paySupplierOp||'';
  return '<label class="fld"><span>تخصيص السداد لخدمة / عملية (اختياري)</span><select name="supplierOp"><option value="">سداد عام غير مخصص</option>'+(state.supplierOps||[]).filter(o=>o.partyId===p.id&&(supplierRemaining(o)>0||o.id===selected)).map(o=>'<option value="'+esc(o.id)+'"'+(o.id===selected?' selected':'')+'>'+esc(o.title+' · '+o.sourceName)+' · الباقي '+fmt(round2(o.amount-supplierPaid(o.id,ed&&ed.id)))+'</option>').join('')+'</select></label>';
 }
@@ -6821,9 +6825,9 @@ function supplierServicesHTML(p){
  }).join(''):'<tr class="empty"><td colspan="8">لا توجد خدمات مرتبطة بعد</td></tr>')+'</tbody></table></div></section>';
 }
 const statementBeforeSupplier=statementHTML;
-statementHTML=function(p){return statementBeforeSupplier(p)+(p.kind==='s'?supplierServicesHTML(p):'');};
+statementHTML=function(p){return statementBeforeSupplier(p)+(p.kind==='s'&&isAdm()?supplierServicesHTML(p):'');};
 function openSupplierObligation(p,l,it){
- if(!levelOK('suppliers','f')||(l&&!ckCanManage()))return;
+ if(!isAdm()||(l&&!ckCanManage()))return;
  const suppliers=state.parties.filter(x=>x.kind==='s'&&x.active);
  if(!suppliers.length){toast('أضف موردًا من تبويب الموردين أولًا');return;}
  openModal({title:l?'ربط مورد بهذا البند':'مستحق عملية / خدمة',okLabel:'حفظ المستحق',text:'يمكن إكمال التشيك ليست قبل السداد. المبلغ يظهر في حساب المورد، ويظل التنبيه حتى تخصيص سداد كامل له. لا تسجل نفس المستحق مرة ثانية كفاتورة.',fields:[
@@ -6833,7 +6837,7 @@ function openSupplierObligation(p,l,it){
  {name:'date',label:'تاريخ الخدمة / المبلغ المستحق',type:'date',value:l&&l.date<=todayStr()?l.date:todayStr(),maxlength:10},
  {name:'due',label:'موعد السداد المتوقع (اختياري)',type:'date',value:'',maxlength:10},
  {name:'amount',label:'المبلغ المستحق ('+CUR+')',inputmode:'decimal',maxlength:14}],onSubmit:v=>{
- if(!levelOK('suppliers','f')||(l&&!ckCanManage()))return 'لا تملك الصلاحية';
+ if(!isAdm()||(l&&!ckCanManage()))return 'لا تملك الصلاحية';
  const sp=partyOf(v.partyId),amount=round2(parseNum(v.amount)),title=cstr(v.title,120),sourceName=cstr(v.sourceName,160);
  if(!sp||sp.kind!=='s'||!sp.active)return 'اختر موردًا نشطًا';
  if(!title||!sourceName)return 'اكتب الخدمة واسم العملية';
@@ -6847,8 +6851,38 @@ function openSupplierObligation(p,l,it){
 }
 act.linkSupplierItem=b=>{const l=listOf(b.dataset.l),it=l&&l.items.find(i=>i.id===b.dataset.i);if(l&&it)openSupplierObligation(null,l,it);};
 act.newSupplierOperation=b=>{const p=partyGuard(b.dataset.id,'f');if(p&&p.kind==='s')openSupplierObligation(p,null,null);};
-act.paySupplierOperation=b=>{const o=supplierOpOf(b.dataset.id);if(!o||!partyGuard(o.partyId,'f'))return;ui.paySupplierOp=o.id;ui.voucherEdit=null;ui.partyId=o.partyId;render();const f=document.querySelector('form[data-form="voucher"]');if(f){f.querySelector('[name="amount"]').value=String(supplierRemaining(o));f.scrollIntoView({behavior:'smooth',block:'center'});}};
+act.paySupplierOperation=b=>{const o=supplierOpOf(b.dataset.id);if(!o||!partyGuard(o.partyId,'f'))return;ui.paySupplierOp=o.id;ui.voucherEdit=null;ui.partyId=o.partyId;render();const f=document.querySelector('form[data-form="voucher"]');if(f){f.querySelector('[name="amount"]').value=String(supplierRemaining(o));f.querySelector('[name="amount"]').focus();f.scrollIntoView({behavior:'smooth',block:'center'});}};
 act.deleteSupplierOperation=b=>{const o=supplierOpOf(b.dataset.id);if(!o||!partyGuard(o.partyId,'f')||supplierPaid(o.id))return;if(!confirm('حذف هذا المستحق غير المسدد؟'))return;state.supplierOps=state.supplierOps.filter(x=>x.id!==o.id);save();render();};
+const ckItemRowBeforeSupplier=ckItemRow;
+ckItemRow=function(it,mod){
+ const base=ckItemRowBeforeSupplier(it,mod);
+ if(!isAdm()||ui.ckForm!=='list')return base;
+ const existing=it&&(state.supplierOps||[]).filter(o=>o.listId===ui.ckEdit&&o.itemId===it.id);
+ if(existing&&existing.length)return base.slice(0,-6)+'<div class="note">ارتباط المورد محفوظ. راجعه من حساب المورد أو من البند بعد الحفظ.</div><input type="hidden" name="i_sp" value=""><input type="hidden" name="i_sa" value=""><input type="hidden" name="i_sd" value=""><input type="hidden" name="i_sdue" value=""></div>';
+ return base.slice(0,-6)+'<div class="supplier-item-editor" style="display:flex;gap:8px;flex-wrap:wrap;width:100%;background:#f4f7fb;padding:10px;border-radius:8px"><label class="fld"><span>مورد لهذا البند؟ (للمالك فقط)</span><select name="i_sp" aria-label="مورد البند">'+partyOptions('s','','بدون مورد')+'</select></label><label class="fld"><span>المستحق</span><input name="i_sa" inputmode="decimal" placeholder="0" aria-label="مبلغ المورد"></label><label class="fld"><span>تاريخ الخدمة</span><input name="i_sd" type="date" value="'+todayStr()+'"></label><label class="fld"><span>موعد السداد (اختياري)</span><input name="i_sdue" type="date"></label></div></div>';
+};
+const ckListFormBeforeSupplier=forms.cklist;
+forms.cklist=function(f){
+ if(!isAdm())return ckListFormBeforeSupplier(f);
+ const rows=[...f.querySelectorAll('.ck-ed')],pending=[];
+ for(const row of rows){
+  const t=(row.querySelector('[name="i_t"]')||{}).value||'',sp=(row.querySelector('[name="i_sp"]')||{}).value||'',raw=(row.querySelector('[name="i_sa"]')||{}).value||'';
+  if(!t.trim()){if(sp||raw){toast('اكتب نص البند المرتبط بالمورد');return;}continue;}
+  const index=rows.slice(0,rows.indexOf(row)).filter(r=>((r.querySelector('[name="i_t"]')||{}).value||'').trim()).length;
+  if(!sp){if(raw){toast('اختر حساب المورد أو امسح المبلغ');return;}continue;}
+  const party=partyOf(sp),amount=round2(parseNum(raw)),date=(row.querySelector('[name="i_sd"]')||{}).value||'',due=(row.querySelector('[name="i_sdue"]')||{}).value||'';
+  if(!party||party.kind!=='s'||!party.active){toast('اختر موردًا نشطًا');return;}
+  if(!(amount>0)||amount>999999999){toast('أدخل مستحق المورد أكبر من صفر');return;}
+  if(!okDate(date)||date>todayStr()||(due&&(!okDate(due)||due<date))){toast('راجع تاريخ الخدمة وموعد السداد');return;}
+  pending.push({index,partyId:sp,amount,date,due});
+ }
+ const oldId=ui.ckEdit;
+ ckListFormBeforeSupplier(f);
+ if(ui.ckForm)return;
+ const l=oldId?listOf(oldId):state.ckLists[state.ckLists.length-1];if(!l)return;
+ pending.forEach(x=>{const it=l.items[x.index];if(it)state.supplierOps.push({id:uid(),partyId:x.partyId,amount:x.amount,date:x.date,due:x.due,listId:l.id,itemId:it.id,title:it.t,sourceName:l.name,sourceKind:'checklist',by:UID,at:Date.now()});});
+ if(pending.length){save();render();}
+};
 act.gotoSupplierChecklist=b=>{const l=listOf(b.dataset.id);if(!l||!levelOK('checks','r'))return;ui.tab='checks';ui.ckView='lists';ui.ckF='all';ui.ckQ=l.name;render();window.scrollTo(0,0);};
 
 bootCloud();
