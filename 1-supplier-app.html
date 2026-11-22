@@ -494,6 +494,7 @@ html:root:root:root:root:root:root[data-motion=off] :is(.btn:hover,.icon:hover,.
  #printPaper .ck-prog{display:none!important}#printPaper .filters .print-field:empty{display:none!important}#printPaper .print-head img{max-height:15mm!important;max-width:40mm!important}
 }
 </style>
+<style id="partial-completion-style">.ck-skipped-tag{font-size:11px;border:1px solid #e5c472;background:#fff7df;color:#805b0b;padding:3px 8px;border-radius:15px}.ck-sub-item.skipped{background:#fffbef}.ck-skip-note{display:block;width:100%;padding-inline-start:33px;color:#896516;font-size:11px}.ck-sub-item.skipped .ck-sub-title{text-decoration:none;color:var(--ink)}@media print{.ck-skipped-tag{background:#fff!important;border-color:#999;color:#333}.ck-skip-note{color:#555!important}}</style>
 </head>
 <body>
 <header class="no-print">
@@ -1948,7 +1949,7 @@ function cleanCkItems(a,inst){
     const o={id:uniqId(x.id,seen),t:cstr(x.t,120),w:cleanUid(x.w)||'admin'};
     if(inst&&x.d&&typeof x.d==='object'&&+x.d.t>0)o.d={u:cleanUid(x.d.u)||'admin',t:+x.d.t};
     const cs={};const kids=asList(x.subs).filter(c=>cstr(c.t,120)).slice(0,30).map(c=>{const z={id:uniqId(c.id,cs),t:cstr(c.t,120),note:cstr(c.note,400)};if(inst&&c.d&&+c.d.t>0)z.d={u:cleanUid(c.d.u)||'admin',t:+c.d.t};return z;});
-    if(kids.length){o.subs=kids;if(inst)ckRollup(o);}
+    if(kids.length){o.subs=kids;if(inst&&o.d&&Array.isArray(x.skipped)){const raw=asList(x.subs).filter(c=>cstr(c.t,120)).slice(0,30);o.skipped=x.skipped.map(id=>{const n=raw.findIndex(c=>c.id===id);return n>=0?kids[n].id:'';}).filter((id,n,a)=>id&&a.indexOf(id)===n);}if(inst)ckRollup(o);}
     return o;
   });
 }
@@ -4148,11 +4149,11 @@ function checksSheet(){
   const now=nowTs(),rows=[];
   state.ckLists.slice().sort((a,b)=>a.date<b.date?-1:(a.date>b.date?1:dueTs(a)-dueTs(b))).forEach(l=>{
     const s=ckState(l,now);
-    l.items.forEach(it=>{rows.push([l.name,fmtDate(l.date),l.time,CK_ST[s.st][0],it.t,uLabel(it.w),it.d?'تم':'لم يتم',it.d?uLabel(it.d.u):'',it.d?stampTxt(it.d.t):'','']);(it.subs||[]).forEach(c=>rows.push([l.name,fmtDate(l.date),l.time,CK_ST[s.st][0],it.t+' / '+c.t,uLabel(it.w),c.d?'تم':'لم يتم',c.d?uLabel(c.d.u):'',c.d?stampTxt(c.d.t):'',c.note||'']));});
+    l.items.forEach(it=>{rows.push([l.name,fmtDate(l.date),l.time,CK_ST[s.st][0],it.t,uLabel(it.w),it.d?'تم':'لم يتم',it.d?uLabel(it.d.u):'',it.d?stampTxt(it.d.t):'','','']);(it.subs||[]).forEach(c=>rows.push([l.name,fmtDate(l.date),l.time,CK_ST[s.st][0],it.t+' / '+c.t,uLabel(it.w),c.d?'تم':'لم يتم',c.d?uLabel(c.d.u):'',c.d?stampTxt(c.d.t):'',c.note||'',(it.skipped||[]).includes(c.id)?'غير منفذ عند إتمام المهمة':'']));});
   });
   if(!rows.length)return null;
-  return tableSheet({name:'قوائم المراجعة',title:'سجل قوائم المراجعة التشغيلية',headers:['القائمة','التاريخ','الموعد','حالة القائمة','البند / البند الفرعي','المسؤول','الإنجاز','أنجزه','وقت الإنجاز','ملاحظات'],
-    widths:[26,16,10,18,34,18,10,18,20,40],landscape:true,rows:rows});
+  return tableSheet({name:'قوائم المراجعة',title:'سجل قوائم المراجعة التشغيلية',headers:['القائمة','التاريخ','الموعد','حالة القائمة','البند / البند الفرعي','المسؤول','الإنجاز','أنجزه','وقت الإنجاز','ملاحظات','عند إتمام المهمة'],
+    widths:[26,16,10,18,34,18,10,18,20,40,26],landscape:true,rows:rows});
 }
 
 const TRIAL_KEY='dive_trial_v1';
@@ -7002,6 +7003,25 @@ function prepareCleanPrint(){
 }
 window.addEventListener('beforeprint',prepareCleanPrint);
 window.addEventListener('afterprint',()=>{document.getElementById('printPaper')?.remove();document.body.classList.remove('has-print-paper');});
+
+
+/* partial checklist completion v2 */
+ckRollup=function(it){const kids=it.subs||[];if(!kids.length){delete it.skipped;return;}if(!kids.some(c=>c.d)){delete it.d;delete it.skipped;}if(!it.d)delete it.skipped;};
+function ckFinish(it){if(!ckCanTick(it)||(it.subs||[]).every(c=>!c.d))return false;it.d={u:me(),t:Date.now()};it.skipped=it.subs.filter(c=>!c.d).map(c=>c.id);return true;}
+function ckFinishText(n,total){const count=n===1?'بند واحد فقط':n===2?'بندين فقط':n+' بنود فقط';return 'هل تريد إتمام المهمة على '+count+'؟ تم تنفيذ '+n+' من أصل '+total+' بنود. '+(n<total?'البنود الأخرى ستبقى غير منفذة ويُسجل ذلك مع وقت الإتمام.':'كل البنود الفرعية منفذة.');}
+const readBeforePartial=readCkItems;
+readCkItems=function(f,old){const r=readBeforePartial(f,old);if(r.err)return r;for(const it of r.items){const was=(old||[]).find(x=>x.id===it.id);if(!was||!was.d)continue;const shape=x=>(x.subs||[]).map(c=>[c.id,c.t]);const changed=JSON.stringify(shape(it))!==JSON.stringify(shape(was))||it.w!==was.w;if(changed&&(was.subs||[]).length){if(!ckCanTick(was))return {err:'يجب أن يعيد المسؤول أو المالك فتح البند المكتمل قبل تعديل بنوده الفرعية'};delete it.d;delete it.skipped;}else if(it.d&&Array.isArray(was.skipped))it.skipped=was.skipped.slice();}return r;};
+const itemBeforePartial=ckItemHTML;
+ckItemHTML=function(l,it,done){const kids=it.subs||[];if(!kids.length)return itemBeforePartial(l,it,done);const can=ckCanTick(it),count=kids.filter(c=>c.d).length,early=it.d&&(it.skipped||[]).length;
+ const mainBox=can&&(count>0||it.d)?'<button type="button" class="ck-box'+(it.d?' on':'')+'" data-act="tickItem" data-l="'+l.id+'" data-i="'+it.id+'" aria-label="'+(it.d?'إعادة فتح':'إتمام')+' البند الأساسي" aria-pressed="'+!!it.d+'">'+(it.d?'✓':'')+'</button>':'<span class="ck-box'+(it.d?' on':'')+'" aria-hidden="true">'+(it.d?'✓':'')+'</span>';
+ return '<section class="ck-parent-group" data-ck-parent="'+esc(it.id)+'"><div class="ck-item'+(it.d?' done':'')+'">'+mainBox+'<span class="ck-t">'+esc(it.t)+'</span><span class="ck-meta">المسؤول: <b>'+esc(uLabel(it.w))+'</b></span><span class="ck-sub-count">'+count+' / '+kids.length+' بنود فرعية</span>'+(it.d?'<small class="ck-meta ck-ok">أتمها '+esc(uLabel(it.d.u))+' · '+esc(stampTxt(it.d.t))+'</small>':'<small class="ck-meta">'+(count?'يمكنك إتمام البند الأساسي الآن':'نفّذ بندًا فرعيًا واحدًا على الأقل للإتمام')+'</small>')+(early?'<span class="ck-skipped-tag">أُتمت مع '+it.skipped.length+' بنود غير منفذة</span>':'')+'</div><div class="ck-sub-list">'+kids.map(c=>{const skipped=it.d&&(it.skipped||[]).includes(c.id);
+  const box=can?'<button type="button" class="ck-box'+(c.d?' on':'')+'" data-act="tickCkSub" data-l="'+l.id+'" data-i="'+it.id+'" data-c="'+c.id+'" aria-label="تعليم البند الفرعي '+esc(c.t)+'" aria-pressed="'+!!c.d+'">'+(c.d?'✓':'')+'</button>':'<span class="ck-box'+(c.d?' on':'')+'" aria-hidden="true">'+(c.d?'✓':'')+'</span>';
+  return '<div class="ck-sub-item'+(c.d?' done':'')+(skipped&&!c.d?' skipped':'')+'" data-ck-sub="'+c.id+'"><div class="ck-sub-label">'+box+'<span class="ck-sub-title">'+esc(c.t)+'</span>'+(c.d?'<small class="ck-meta ck-ok">'+esc(uLabel(c.d.u))+' · '+esc(stampTxt(c.d.t))+'</small>':'')+(skipped?'<small class="ck-skip-note">'+(c.d?'كان غير منفذ عند إتمام المهمة':'غير منفذ عند إتمام المهمة')+'</small>':'')+'</div>'+(can?'<form class="ck-sub-note" data-form="cksubnote"><input type="hidden" name="list" value="'+l.id+'"><input type="hidden" name="item" value="'+it.id+'"><input type="hidden" name="child" value="'+c.id+'"><label class="sr-only" for="note-'+c.id+'">ملاحظات '+esc(c.t)+'</label><input id="note-'+c.id+'" name="note" maxlength="400" value="'+esc(c.note||'')+'" placeholder="ملاحظات (اختياري)" aria-label="ملاحظات '+esc(c.t)+'"><button type="submit" class="btn sec sm">حفظ</button></form>':'<div class="ck-sub-note-read"><small class="muted">ملاحظات</small> '+esc(c.note||'لا توجد ملاحظات')+'</div>')+'</div>';
+ }).join('')+'</div></section>'+supplierItemHTML(l,it);
+};
+const tickSimpleBeforePartial=act.tickItem;
+act.tickItem=b=>{const l=listOf(b.dataset.l),it=l&&l.items.find(i=>i.id===b.dataset.i);if(!it||!(it.subs||[]).length)return tickSimpleBeforePartial(b);if(!ckCanTick(it))return;if(it.d){delete it.d;delete it.skipped;}else if(!ckFinish(it)){toast('نفّذ بندًا فرعيًا واحدًا على الأقل أولًا');return;}save();keepScroll(render);};
+act.tickCkSub=b=>{const l=listOf(b.dataset.l),it=l&&l.items.find(i=>i.id===b.dataset.i),c=it&&(it.subs||[]).find(x=>x.id===b.dataset.c);if(!c||!ckCanTick(it))return;const checking=!c.d,wasDone=!!it.d;if(checking)c.d={u:me(),t:Date.now()};else{delete c.d;delete it.d;delete it.skipped;}save();keepScroll(render);ckPlay(document.querySelector('[data-ck-sub="'+CSS.escape(c.id)+'"] .ck-box'),'ck-tick-flip');if(checking&&!wasDone){const n=it.subs.filter(x=>x.d).length;openModal({title:'إتمام المهمة؟',text:ckFinishText(n,it.subs.length),okLabel:'نعم، إتمام المهمة',fields:[],extra:'<p class="note">اختيار «إلغاء» يحفظ علامة البند الصغير فقط، ويمكنك تعليم البند الأساسي لاحقًا.</p>',onSubmit:()=>{const current=listOf(l.id)?.items.find(x=>x.id===it.id);if(!current||!ckFinish(current))return 'لم يعد إتمام هذا البند متاحًا';save();keepScroll(render);toast('تم إتمام المهمة');return null;}});}};
 
 bootCloud();
 
